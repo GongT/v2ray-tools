@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
-bash parse.sh test/input
+bash parse.sh "$TMPDIR/input"
 
 mkdir -p result
 cd result
