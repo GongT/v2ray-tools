@@ -24,3 +24,5 @@ fi
 
 git add config.json
 git commit -m "Update at: $(date "+%F %T")" || true
+
+cp config.json /etc/v2ray/

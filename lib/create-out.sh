@@ -35,7 +35,7 @@ function generateWs() {
 			"tag": "$NAME",
 			"protocol": "vmess",
 			"settings": {"vnext": [$(createVnext)]},
-			"mux": {"enabled": true},
+			"mux": {"enabled": false},
 			"streamSettings": {"network": "ws", "security": "tls", "wsSettings": {"path": "/v2"}}
 		}
 	JSON
