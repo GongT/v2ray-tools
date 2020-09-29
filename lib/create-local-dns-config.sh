@@ -38,7 +38,7 @@ function createDnsForwarding() {
 		{
 			"type": "field",
 			"inboundTag": $(join_strings "${NAMES[@]}"),
-			"balancerTag": "$DEFAULT_BALANCER_NAME"
+			"balancerTag": "DEFAULT_BALANCER_NAME"
 		}
 	JSON
 }

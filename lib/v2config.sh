@@ -30,7 +30,7 @@ function newInbound() {
 	INBOUNDS+=("$(_in1 "${1:-}")")
 }
 function newRoutingRule() {
-	ROUTING_RULES+=("$(_in1 "${1:-}")")
+	ROUTING_RULES+=("$(_in1 "${1:-}" | sed "s/DEFAULT_BALANCER_NAME/$DEFAULT_BALANCER_NAME/g")")
 }
 function newLoadBalancer() {
 	BALANCERS+=("$(_in1 "${1:-}")")
