@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 set -Eeuo pipefail
-cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-
-TMPDIR="$(pwd)/temp"
+# shellcheck source=lib/fn.sh
+source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/lib/fn.sh"
 
 bash parse.sh "$TMPDIR/input"
 
