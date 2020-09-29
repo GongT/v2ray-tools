@@ -2,7 +2,7 @@
 
 用于在openwrt上运行
 
-依赖`bash` `jq` `wget`
+依赖`bash` `jq` `wget` `coreutils-base64`
 
 文件:
 * base.json - 内容会被合并到最终结果里
