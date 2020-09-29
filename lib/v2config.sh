@@ -47,6 +47,8 @@ function makeConfig() {
 		}
 	JSON
 
+	finalRoutes
+
 	format_output "created.json" <<- JSON
 		{
 			"outbounds": [ $(join "${OUTBOUNDS[@]}")
@@ -66,26 +68,28 @@ function makeConfig() {
 	jq -M --tab -s '.[0] * .[1]' "base.json" "$TMPDIR/created.json" > "$TMPDIR/v2ray.config.json"
 }
 
-newRoutingRule <<- JSON
-	{
-		"type": "field",
-		"network": "tcp,udp",
-		"balancerTag": "$DEFAULT_BALANCER_NAME"
-	}
-JSON
+function finalRoutes() {
+	newRoutingRule <<- JSON
+		{
+			"type": "field",
+			"inboundTag": ["force-proxy"],
+			"balancerTag": "$DEFAULT_BALANCER_NAME"
+		}
+	JSON
 
-newRoutingRule <<- JSON
-	{
-		"type": "field",
-		"outboundTag": "direct",
-		"ip": [ "geoip:private", "geoip:cn" ]
-	}
-JSON
+	newRoutingRule <<- JSON
+		{
+			"type": "field",
+			"outboundTag": "direct",
+			"ip": [ "geoip:private", "geoip:cn" ]
+		}
+	JSON
 
-newRoutingRule <<- JSON
-	{
-		"type": "field",
-		"inboundTag": ["force-proxy"],
-		"balancerTag": "$DEFAULT_BALANCER_NAME"
-	}
-JSON
+	newRoutingRule <<- JSON
+		{
+			"type": "field",
+			"network": "tcp,udp",
+			"balancerTag": "$DEFAULT_BALANCER_NAME"
+		}
+	JSON
+}
