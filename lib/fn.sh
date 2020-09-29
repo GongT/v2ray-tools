@@ -12,7 +12,6 @@ source "./create-local-dns-config.sh"
 cd ..
 
 TMPDIR="$(pwd)/temp"
-rm -rf "$TMPDIR"
 mkdir -p "$TMPDIR"
 
 function die() {
