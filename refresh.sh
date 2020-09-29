@@ -9,6 +9,8 @@ mkdir -p result
 cd result
 
 cp -f ../temp/v2ray.config.json ./config.json
+v2ray -config ./config.json -test || die "Invalid config file."
+
 if ! [[ -e .git ]]; then
 	git init
 else
