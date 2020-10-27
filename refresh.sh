@@ -11,7 +11,7 @@ cd result
 
 cp -f ../temp/v2ray.config.json ./config.json
 
-if [[ "${V2RAY_LOCATION_ASSET+found}" != found ]]; then
+if [[ ${V2RAY_LOCATION_ASSET+found} != found ]]; then
 	export V2RAY_LOCATION_ASSET=/data/geoip
 fi
 

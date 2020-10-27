@@ -34,7 +34,7 @@ function createDnsForwarding() {
 		createDnsForwarding1 "$I"
 	done
 
-	newRoutingRule <<- JSON
+	generateRoutingRule <<- JSON
 		{
 			"type": "field",
 			"inboundTag": $(join_strings "${NAMES[@]}"),
