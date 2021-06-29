@@ -1,19 +1,14 @@
 #!/usr/bin/env bash
 
-declare -i LB_INDEX=0
-declare -r LB_NAME="proxy_"
-
 function generateTcp() {
-	local DATA
-	LB_INDEX="$LB_INDEX + 1"
+	local DATA NAME
 
-	local NAME="${LB_NAME}${LB_INDEX}"
-	pushDefaultBalancer "$NAME"
+	pushBalancerElement
 
-	newOutbound <<- JSON
+	newOutbound <<-JSON
 		{
 			"!title": "$ps",
-			"tag": "$NAME",
+			"tag": "${NAME}",
 			"protocol": "vmess",
 			"settings": {"vnext": [$(createVnext)]},
 			"mux": {"enabled": false},
@@ -23,16 +18,14 @@ function generateTcp() {
 }
 
 function generateWs() {
-	local DATA
-	LB_INDEX="$LB_INDEX + 1"
+	local DATA NAME
 
-	local NAME="${LB_NAME}${LB_INDEX}"
-	pushDefaultBalancer "$NAME"
+	pushBalancerElement
 
-	newOutbound <<- JSON
+	newOutbound <<-JSON
 		{
 			"!title": "$ps",
-			"tag": "$NAME",
+			"tag": "${NAME}",
 			"protocol": "vmess",
 			"settings": {"vnext": [$(createVnext)]},
 			"mux": {"enabled": false},
@@ -42,7 +35,7 @@ function generateWs() {
 }
 
 function createVnext() {
-	cat <<- JSON
+	cat <<-JSON
 		{
 			"address": "$add",
 			"port": $port,
@@ -55,7 +48,7 @@ function createVnext() {
 }
 
 function create_direct() {
-	cat <<- JSON
+	cat <<-JSON
 		{
 			"tag": "direct",
 			"protocol": "freedom",
@@ -67,7 +60,7 @@ function create_direct() {
 function parseVMESS() {
 	local EXEC
 
-	local -r QUERY="to_entries[] | .key + \"=\" + (.value|tostring) + \"\""
+	local -r QUERY='to_entries[] | .key + "=" + (.value|tostring) + ""'
 	while read -r EXEC; do
 		local -r "$EXEC"
 	done < <(echo "$JSON" | jq -r "$QUERY")
@@ -93,7 +86,7 @@ function parseInput() {
 	mapfile -t URLS < <(echo "$DATA" | base64 -d)
 
 	for URL in "${URLS[@]}"; do
-		if [[ "$URL" = vmess://* ]]; then
+		if [[ $URL == vmess://* ]]; then
 			JSON=$(echo "${URL:8}" | base64 -d)
 			parseVMESS "$JSON"
 		# elif [[ "$URL" = ss://* ]]; then
@@ -103,6 +96,4 @@ function parseInput() {
 			mute "found unknown protocol: $URL"
 		fi
 	done
-
-	newOutbound < <(create_direct)
 }

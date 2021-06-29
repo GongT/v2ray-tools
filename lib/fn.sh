@@ -28,7 +28,7 @@ function join_strings() {
 	local I
 	for I; do
 		echo "$I"
-	done | jq -nR '[inputs | select(length>0)]'
+	done | jq -cnR '[inputs | select(length>0)]'
 }
 function join() {
 	local I LINES=""

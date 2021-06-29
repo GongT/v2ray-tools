@@ -16,7 +16,7 @@ NAMES=()
 function createDnsForwarding1() {
 	local NAME TARGET="$1"
 	NAME="main-outbound-dns-$DNS_FW_PORT"
-	newInbound <<- JSON
+	newInbound <<-JSON
 		{
 			"tag": "$NAME",
 			"protocol": "dokodemo-door",
@@ -24,17 +24,21 @@ function createDnsForwarding1() {
 			"settings": {"address": "$TARGET", "port": 53, "network": "tcp,udp"}
 		}
 	JSON
+	echo "server 127.0.0.1:$DNS_FW_PORT weight=5;" >>"$TMPDIR/v2ray_dns_nginx_upstream.conf.new"
 	NAMES+=("$NAME")
 	DNS_FW_PORT="$DNS_FW_PORT + 1"
 }
 
 function createDnsForwarding() {
+	newOutbound < <(create_direct)
+
 	local I
+	echo -n >"$TMPDIR/v2ray_dns_nginx_upstream.conf.new"
 	for I in "${TARGET_SERVERS[@]}"; do
 		createDnsForwarding1 "$I"
 	done
 
-	generateRoutingRule <<- JSON
+	generateRoutingRule <<-JSON
 		{
 			"type": "field",
 			"inboundTag": $(join_strings "${NAMES[@]}"),

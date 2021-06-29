@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-declare -r DEFAULT_BALANCER_NAME="default_load_balancer"
-
 OUTBOUNDS=()
 ROUTING_RULES=()
 GENERATE_ROUTING_RULES=()
 INBOUNDS=()
 BALANCERS=()
-DEFAULT_LB=()
+BALANCER_NAMES=()
+declare -i LB_INDEX=0
+DEFAULT_BALANCER_NAME=""
+LB_NAME=""
 ROOT_FIELDS=()
 
 declare -r LEVEL3='            '
@@ -42,15 +43,40 @@ function generateRoutingRule() {
 function newLoadBalancer() {
 	BALANCERS+=("$(_in1 "${1:-}")")
 }
-function pushDefaultBalancer() {
-	DEFAULT_LB+=("$@")
+function flushBalancer() {
+	if [[ $LB_INDEX -gt 0 ]]; then
+		if [[ ! $DEFAULT_BALANCER_NAME ]]; then
+			if [[ ! $LB_NAME ]]; then
+				die "no lb name defined"
+			fi
+			DEFAULT_BALANCER_NAME="$LB_NAME"
+		fi
+		BALANCER_NAMES+=("$LB_NAME")
+		newLoadBalancer <<-JSON
+			{
+				"tag": "$LB_NAME",
+				"selector": ["${LB_NAME}_"]
+			}
+		JSON
+	fi
+	LB_NAME=""
+	LB_INDEX=0
+}
+function switchOutputTag() {
+	LB_NAME="${1}"
+	LB_INDEX=0
+}
+
+function pushBalancerElement() {
+	LB_INDEX=$((LB_INDEX + 1))
+	NAME="${LB_NAME}_${LB_INDEX}"
 }
 
 function makeConfig() {
 	newLoadBalancer <<-JSON
 		{
-			"tag": "$DEFAULT_BALANCER_NAME",
-			"selector": $(join_strings "${DEFAULT_LB[@]}")
+			"tag": "any",
+			"selector": $(join_strings "${BALANCER_NAMES[@]}")
 		}
 	JSON
 
