@@ -29,7 +29,14 @@ git commit -m "Update at: $(date "+%F %T")" || true
 cp config.json /etc/v2ray/
 /etc/init.d/v2ray restart
 
-cat "$TMPDIR/v2ray_dns_nginx_upstream.conf.new" >"/etc/v2ray/dns_nginx_upstream.conf"
+rm -rf "/etc/v2ray/dns_load_balance.old"
+[[ -e "/etc/v2ray/dns_load_balance" ]] && mv "/etc/v2ray/dns_load_balance" "/etc/v2ray/dns_load_balance.old"
+mv "/etc/v2ray/dns_load_balance.new" "/etc/v2ray/dns_load_balance"
+
 if nginx -t; then
 	/etc/init.d/nginx restart
+	rm -rf "/etc/v2ray/dns_load_balance.old"
+else
+	rm -rf "/etc/v2ray/dns_load_balance"
+	mv "/etc/v2ray/dns_load_balance.old" "/etc/v2ray/dns_load_balance"
 fi

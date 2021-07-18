@@ -9,33 +9,58 @@ TARGET_SERVERS=(
 	74.82.42.42
 )
 
-declare -i DNS_FW_PORT=28842
+declare -r DNS_FW_PORT=28842
 
 NAMES=()
 
 function createDnsForwarding1() {
-	local NAME TARGET="$1"
-	NAME="main-outbound-dns-$DNS_FW_PORT"
+	local NAME TARGET="$1" I="$2"
+	local V2R_PORT=$((DNS_FW_PORT + I))
+
+	NAME="main-outbound-dns-$V2R_PORT"
 	newInbound <<-JSON
 		{
 			"tag": "$NAME",
 			"protocol": "dokodemo-door",
-			"port": $DNS_FW_PORT,
+			"port": $V2R_PORT,
 			"settings": {"address": "$TARGET", "port": 53, "network": "tcp,udp"}
 		}
 	JSON
-	echo "server 127.0.0.1:$DNS_FW_PORT weight=5;" >>"$TMPDIR/v2ray_dns_nginx_upstream.conf.new"
+
+	local LISTEN=$((38800 + I))
+
+	echo "server=127.0.0.1#$LISTEN" >>"/etc/v2ray/dns_load_balance.new/dnsmasq.conf"
+
+	cat <<NGX >>"/etc/v2ray/dns_load_balance.new/nginx.conf"
+upstream dnsstreams$I {
+	server 10.250.250.0:53 weight=1 backup;
+	server 127.0.0.1:$V2R_PORT weight=5;
+}
+server {
+	listen [::1]:$LISTEN udp;
+	listen 127.0.0.1:$LISTEN udp;
+	listen [::1]:$LISTEN;
+	listen 127.0.0.1:$LISTEN;
+
+	include log/stream_dns.conf;
+
+	proxy_connect_timeout 5s;
+	proxy_pass dnsstreams$II;
+}
+NGX
+
 	NAMES+=("$NAME")
-	DNS_FW_PORT="$DNS_FW_PORT + 1"
 }
 
 function createDnsForwarding() {
 	newOutbound < <(create_direct)
 
 	local I
-	echo -n >"$TMPDIR/v2ray_dns_nginx_upstream.conf.new"
+	local -i II=0
+	mkdir -p "/etc/v2ray/dns_load_balance.new"
 	for I in "${TARGET_SERVERS[@]}"; do
-		createDnsForwarding1 "$I"
+		createDnsForwarding1 "$I" "$II"
+		II=$((II + 1))
 	done
 
 	generateRoutingRule <<-JSON
