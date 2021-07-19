@@ -4,6 +4,8 @@ set -Eeuo pipefail
 
 cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
+export INPUTS_DIR="$(pwd)/../inputs"
+
 source "./v2config.sh"
 source "./base.sh"
 source "./create-out.sh"
@@ -11,8 +13,10 @@ source "./create-local-dns-config.sh"
 
 cd ..
 
-TMPDIR="$(pwd)/temp"
+TMPDIR="/dev/shm/v2ray-config-temp"
 mkdir -p "$TMPDIR"
+
+trap 'rm -rf $TMPDIR' EXIT
 
 function die() {
 	echo -e "\e[38;5;9m$*\e[0m" >&2

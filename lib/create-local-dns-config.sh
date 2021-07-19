@@ -22,6 +22,7 @@ function createDnsForwarding1() {
 		{
 			"tag": "$NAME",
 			"protocol": "dokodemo-door",
+			"listen": "[::1]",
 			"port": $V2R_PORT,
 			"settings": {"address": "$TARGET", "port": 53, "network": "tcp,udp"}
 		}
@@ -29,18 +30,16 @@ function createDnsForwarding1() {
 
 	local LISTEN=$((38800 + I))
 
-	echo "server=127.0.0.1#$LISTEN" >>"/etc/v2ray/dns_load_balance.new/dnsmasq.conf"
+	echo "server=::1#$LISTEN" >>"/etc/v2ray/dns_load_balance.new/dnsmasq.conf"
 
 	cat <<NGX >>"/etc/v2ray/dns_load_balance.new/nginx.conf"
 upstream dnsstreams$I {
-	server 10.250.250.0:53 weight=1 backup;
-	server 127.0.0.1:$V2R_PORT weight=5;
+	# server 10.250.250.0:53 weight=1 backup;
+	server [::1]:$V2R_PORT weight=5;
 }
 server {
 	listen [::1]:$LISTEN udp;
-	listen 127.0.0.1:$LISTEN udp;
 	listen [::1]:$LISTEN;
-	listen 127.0.0.1:$LISTEN;
 
 	include log/stream_dns.conf;
 
@@ -67,7 +66,7 @@ function createDnsForwarding() {
 		{
 			"type": "field",
 			"inboundTag": $(join_strings "${NAMES[@]}"),
-			"balancerTag": "DEFAULT_BALANCER_NAME"
+			"balancerTag": "any"
 		}
 	JSON
 }

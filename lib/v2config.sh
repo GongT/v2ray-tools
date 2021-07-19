@@ -7,7 +7,6 @@ INBOUNDS=()
 BALANCERS=()
 BALANCER_NAMES=()
 declare -i LB_INDEX=0
-DEFAULT_BALANCER_NAME=""
 LB_NAME=""
 ROOT_FIELDS=()
 
@@ -35,22 +34,18 @@ function newInbound() {
 	INBOUNDS+=("$(_in1 "${1:-}")")
 }
 function newRoutingRule() {
-	ROUTING_RULES+=("$(_in1 "${1:-}" | sed "s/DEFAULT_BALANCER_NAME/$DEFAULT_BALANCER_NAME/g")")
+	ROUTING_RULES+=("$(_in1 "${1:-}")")
 }
 function generateRoutingRule() {
-	GENERATE_ROUTING_RULES+=("$(_in1 "${1:-}" | sed "s/DEFAULT_BALANCER_NAME/$DEFAULT_BALANCER_NAME/g")")
+	GENERATE_ROUTING_RULES+=("$(_in1 "${1:-}")")
 }
 function newLoadBalancer() {
-	BALANCERS+=("$(_in1 "${1:-}")")
+	DATA="$(_in1 "${1:-}")"
+	# echo "$DATA" | jq '.tag'
+	BALANCERS+=("$DATA")
 }
 function flushBalancer() {
 	if [[ $LB_INDEX -gt 0 ]]; then
-		if [[ ! $DEFAULT_BALANCER_NAME ]]; then
-			if [[ ! $LB_NAME ]]; then
-				die "no lb name defined"
-			fi
-			DEFAULT_BALANCER_NAME="$LB_NAME"
-		fi
 		BALANCER_NAMES+=("$LB_NAME")
 		newLoadBalancer <<-JSON
 			{
@@ -73,13 +68,6 @@ function pushBalancerElement() {
 }
 
 function makeConfig() {
-	newLoadBalancer <<-JSON
-		{
-			"tag": "any",
-			"selector": $(join_strings "${BALANCER_NAMES[@]}")
-		}
-	JSON
-
 	local -a RR=()
 	local I GENERATE_FOUND=""
 	for I in "${ROUTING_RULES[@]}"; do
@@ -117,7 +105,23 @@ function makeConfig() {
 		}
 	JSON
 
-	jq -M --tab -s '.[0] * .[1]' "base.json" "$TMPDIR/created.json" >"$TMPDIR/v2ray.config.json"
+	ANY_LB=$(jq '.routing.balancers[].tag' "$TMPDIR/created.json" | jq -c --slurp '[{"tag":"any","selector":.}]')
+
+	jq -M --tab -s '.[0] * .[1] | .routing.balancers+=$ANY_LB' "base.json" "$TMPDIR/created.json" --argjson ANY_LB "$ANY_LB" >"$TMPDIR/v2ray.config.json"
+	echo "result save to $TMPDIR/v2ray.config.json"
+
+	mapfile -t SERVER_DOMAINS < <(
+		cat "$TMPDIR/v2ray.config.json" \
+			| jq -r '.outbounds[] | select(.protocol=="vmess") |
+		  .settings.vnext[].address?' \
+			| grep -oE '[^.]+\.[^.]+$' \
+			| sort | uniq \
+			| grep -vP '^\d+\.\d+$'
+	)
+	for I in "${SERVER_DOMAINS[@]}"; do
+		echo "server=/.$I/119.29.29.29" >"/etc/v2ray/dns_load_balance.new/dnsmasq.conf"
+		echo "server=/.$I/223.5.5.5" >"/etc/v2ray/dns_load_balance.new/dnsmasq.conf"
+	done
 }
 
 function finalRoutes() {
@@ -126,7 +130,7 @@ function finalRoutes() {
 			{
 				"type": "field",
 				"inboundTag": ["force-proxy"],
-				"balancerTag": "$DEFAULT_BALANCER_NAME"
+				"balancerTag": "any"
 			}
 		JSON
 	),"
@@ -145,7 +149,7 @@ function finalRoutes() {
 		{
 			"type": "field",
 			"network": "tcp,udp",
-			"balancerTag": "$DEFAULT_BALANCER_NAME"
+			"balancerTag": "any"
 		}
 	JSON
 }

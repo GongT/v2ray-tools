@@ -9,7 +9,7 @@ bash parse.sh
 mkdir -p result
 cd result
 
-cp -f ../temp/v2ray.config.json ./config.json
+cp -f "$TMPDIR/v2ray.config.json" ./config.json
 
 if [[ ${V2RAY_LOCATION_ASSET+found} != found ]]; then
 	export V2RAY_LOCATION_ASSET=/data/geoip
@@ -40,3 +40,5 @@ else
 	rm -rf "/etc/v2ray/dns_load_balance"
 	mv "/etc/v2ray/dns_load_balance.old" "/etc/v2ray/dns_load_balance"
 fi
+
+/etc/init.d/dnsmasq-multi-instance reload

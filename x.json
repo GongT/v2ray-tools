@@ -1,0 +1,63 @@
+
+		{
+			"tag": "shenyuan_1",
+			"protocol": "vmess",
+			"settings": {
+				"vnext": [
+					{
+						"address": "icook.tw",
+						"port": 443,
+						"users": [
+							{
+								"id": "ad806487-2d26-4636-98b6-ab85cc8521f7",
+								"alterId": 64
+							}
+						]
+					}
+				]
+			},
+			"mux": {
+				"enabled": false
+			},
+			"streamSettings": {
+				"network": "ws",
+				"security": "tls",
+				"wsSettings": {
+					"path": "/v2",
+					"headers": {
+						"Host": "heroku1.bigemon.workers.dev"
+					}
+				}
+			}
+		},
+		{
+			"tag": "shenyuan_2",
+			"protocol": "vmess",
+			"settings": {
+				"vnext": [
+					{
+						"address": "cangshui.net",
+						"port": 443,
+						"users": [
+							{
+								"id": "ad806487-2d26-4636-98b6-ab85cc8521f7",
+								"alterId": 64
+							}
+						]
+					}
+				]
+			},
+			"mux": {
+				"enabled": false
+			},
+			"streamSettings": {
+				"network": "ws",
+				"security": "tls",
+				"wsSettings": {
+					"path": "/v2",
+					"headers": {
+						"Host": "heroku1.bigemon.workers.dev"
+					}
+				}
+			}
+		},

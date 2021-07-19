@@ -1,6 +1,5 @@
 test*
-temp/
+inputs/
 base.json
 URL.txt
 result
-v2ray-source-code

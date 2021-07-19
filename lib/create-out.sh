@@ -58,7 +58,7 @@ function create_direct() {
 }
 
 function parseVMESS() {
-	local EXEC
+	local EXEC JSON="$1"
 
 	local -r QUERY='to_entries[] | .key + "=" + (.value|tostring) + ""'
 	while read -r EXEC; do
@@ -78,20 +78,39 @@ function parseVMESS() {
 	esac
 }
 function parseSS() {
-	echo "format SS: $JSON"
+	local EXEC ARGS="$1"
+	local URL=${ARGS%#*} PARAM=${ARGS#*#}
+	URL=$(echo "$URL" | base64 -d)
+
+	echo "format SS: $URL | $PARAM"
+
+	newOutbound <<-JSON
+		{
+			"!title": "$ps",
+			"tag": "${NAME}",
+			"protocol": "vmess",
+			"settings": {"vnext": [$(createVnext)]},
+			"mux": {"enabled": false},
+			"streamSettings": {"network": "tcp"}
+		}
+	JSON
 }
 
 function parseInput() {
 	local DATA="$1" URLS URL JSON
-	mapfile -t URLS < <(echo "$DATA" | base64 -d)
+
+	if [[ $DATA == vmess://* ]]; then
+		mapfile -t URLS < <(echo "$DATA")
+	else
+		mapfile -t URLS < <(echo "$DATA" | base64 -d)
+	fi
 
 	for URL in "${URLS[@]}"; do
 		if [[ $URL == vmess://* ]]; then
 			JSON=$(echo "${URL:8}" | base64 -d)
 			parseVMESS "$JSON"
-		# elif [[ "$URL" = ss://* ]]; then
-		# 	JSON=$(echo "${URL:5}" | base64 -d)
-		# 	parseSS "$JSON"
+		# elif [[ $URL == ss://* ]]; then
+		# 	parseSS "${URL:5}"
 		else
 			mute "found unknown protocol: $URL"
 		fi
