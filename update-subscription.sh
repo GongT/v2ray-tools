@@ -10,7 +10,9 @@ mkdir -p "$INPUTS_DIR"
 
 mapfile -t URLS <"URL.txt"
 for LINE in "${URLS[@]}"; do
-	[[ $LINE ]] || continue
+	if [[ ! $LINE ]] || [[ $LINE == '#'* ]]; then
+		continue
+	fi
 
 	TAG=${LINE##*#}
 	URL=${LINE%%#*}
@@ -23,5 +25,3 @@ for LINE in "${URLS[@]}"; do
 
 	mv "$INPUTS_DIR/.downloading" "$INPUTS_DIR/$TAG"
 done
-
-bash refresh.sh

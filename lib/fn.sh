@@ -5,6 +5,7 @@ set -Eeuo pipefail
 cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 export INPUTS_DIR="$(pwd)/../inputs"
+export RESULTS_DIR="$(pwd)/../result"
 
 source "./v2config.sh"
 source "./base.sh"

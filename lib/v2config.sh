@@ -110,6 +110,9 @@ function makeConfig() {
 	jq -M --tab -s '.[0] * .[1] | .routing.balancers+=$ANY_LB' "base.json" "$TMPDIR/created.json" --argjson ANY_LB "$ANY_LB" >"$TMPDIR/v2ray.config.json"
 	echo "result save to $TMPDIR/v2ray.config.json"
 
+	mkdir -p "$RESULTS_DIR"
+	cp "$TMPDIR/v2ray.config.json" "$RESULTS_DIR/config.json"
+
 	mapfile -t SERVER_DOMAINS < <(
 		cat "$TMPDIR/v2ray.config.json" \
 			| jq -r '.outbounds[] | select(.protocol=="vmess") |
@@ -119,8 +122,8 @@ function makeConfig() {
 			| grep -vP '^\d+\.\d+$'
 	)
 	for I in "${SERVER_DOMAINS[@]}"; do
-		echo "server=/.$I/119.29.29.29" >"/etc/v2ray/dns_load_balance.new/dnsmasq.conf"
-		echo "server=/.$I/223.5.5.5" >"/etc/v2ray/dns_load_balance.new/dnsmasq.conf"
+		echo "server=/.$I/119.29.29.29" >>"/etc/v2ray/dns_load_balance.new/dnsmasq.conf"
+		echo "server=/.$I/223.5.5.5" >>"/etc/v2ray/dns_load_balance.new/dnsmasq.conf"
 	done
 }
 

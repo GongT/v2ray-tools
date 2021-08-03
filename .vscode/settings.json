@@ -1,3 +1,4 @@
 {
-	"editor.defaultFormatter": null
+	"editor.defaultFormatter": null,
+	"python.pythonPath": "/xbin/python3"
 }

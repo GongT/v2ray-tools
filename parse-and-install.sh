@@ -4,7 +4,7 @@ set -Eeuo pipefail
 # shellcheck source=lib/fn.sh
 source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/lib/fn.sh"
 
-bash parse.sh
+bash parse-inputs.sh
 
 mkdir -p result
 cd result
